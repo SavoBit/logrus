@@ -26,6 +26,8 @@ func (level Level) String() string {
 		return "fatal"
 	case PanicLevel:
 		return "panic"
+	case TraceLevel:
+		return "trace"
 	}
 
 	return "unknown"
@@ -46,6 +48,8 @@ func ParseLevel(lvl string) (Level, error) {
 		return InfoLevel, nil
 	case "debug":
 		return DebugLevel, nil
+	case "trace":
+		return TraceLevel, nil
 	}
 
 	var l Level
@@ -71,6 +75,8 @@ const (
 	InfoLevel
 	// DebugLevel level. Usually only enabled when debugging. Very verbose logging.
 	DebugLevel
+	// TraceLevel level. Used for very fine grained logging and instrumentation
+	TraceLevel
 )
 
 // Won't compile if StdLogger can't be realized by a log.Logger
