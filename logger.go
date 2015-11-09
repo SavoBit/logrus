@@ -98,6 +98,12 @@ func (logger *Logger) Errorf(format string, args ...interface{}) {
 	}
 }
 
+func (logger *Logger) Tracef(format string, args ...interface{}) {
+	if logger.Level >= TraceLevel {
+		NewEntry(logger).Tracef(format, args...)
+	}
+}
+
 func (logger *Logger) Fatalf(format string, args ...interface{}) {
 	if logger.Level >= FatalLevel {
 		NewEntry(logger).Fatalf(format, args...)
