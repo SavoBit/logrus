@@ -3,14 +3,8 @@ package logrus
 import (
 	"bytes"
 	"fmt"
-	_ "runtime"
-	_ "sort"
-	_ "strings"
-	_ "time"
+	"strings"
 )
-
-
-var requiredFields = []string {"time", "msg", "level"}
 
 // PositionalFormatter is an attempt to support more "classical" style
 // log formatters. The fields are written in order. In addition, a map
@@ -18,8 +12,8 @@ var requiredFields = []string {"time", "msg", "level"}
 // corresponding function can be called and placed in the log
 // this would be useful for supporting file name, line numbers, etc
 type PositionalFormatter struct {
-	Functions map[string]func() string
-	Fields  []string
+	Functions       map[string]func() string
+	Fields          []string
 	TimestampFormat string
 }
 
@@ -27,7 +21,7 @@ type PositionalFormatter struct {
 func (f *PositionalFormatter) Format(entry *Entry) ([]byte, error) {
 	var keys []string = make([]string, 0, len(entry.Data))
 	for k := range entry.Data {
-		keys = append(keys,k)
+		keys = append(keys, k)
 	}
 
 	timestampFormat := f.TimestampFormat
@@ -45,6 +39,8 @@ func (f *PositionalFormatter) Format(entry *Entry) ([]byte, error) {
 			f.appendKeyValue(b, "level", entry.Level.String())
 		case field == "msg":
 			f.appendKeyValue(b, "msg", entry.Message)
+		case strings.HasPrefix(field, "`"):
+			f.appendKeyValue(b, field, field)
 		default:
 			f.appendKeyValue(b, field, nil)
 		}
@@ -54,8 +50,6 @@ func (f *PositionalFormatter) Format(entry *Entry) ([]byte, error) {
 	b.WriteByte('\n')
 	return b.Bytes(), nil
 }
-
-
 
 func writeQuotedValue(value interface{}, b *bytes.Buffer) {
 	switch value := value.(type) {
@@ -77,14 +71,18 @@ func writeQuotedValue(value interface{}, b *bytes.Buffer) {
 	}
 }
 
-
-func (f *PositionalFormatter) appendKeyValue(b *bytes.Buffer, key string, value interface{}){
+func (f *PositionalFormatter) appendKeyValue(b *bytes.Buffer, key string, value interface{}) {
 	// If the key has been overridden in functions, run that
 	if function, ok := f.Functions[key]; ok {
 		val := function()
 		writeQuotedValue(val, b)
-	}else {
-		writeQuotedValue(value, b)
+	} else {
+		if strings.HasPrefix(key, "`") {
+			b.WriteString(key[1:len(key)])
+		} else {
+			writeQuotedValue(value, b)
+		}
+
 	}
 	b.WriteByte(' ')
 }
