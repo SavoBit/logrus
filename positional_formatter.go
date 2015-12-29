@@ -15,6 +15,7 @@ type PositionalFormatter struct {
 	Functions       map[string]func() string
 	Fields          []string
 	TimestampFormat string
+	MultiLine       bool
 }
 
 // Format implements the formatter
@@ -32,13 +33,18 @@ func (f *PositionalFormatter) Format(entry *Entry) ([]byte, error) {
 	b := &bytes.Buffer{}
 
 	for _, field := range f.Fields {
+
 		switch {
 		case field == "time":
 			f.appendKeyValue(b, "time", entry.Time.Format(timestampFormat))
 		case field == "level":
 			f.appendKeyValue(b, "level", entry.Level.String())
 		case field == "msg":
-			f.appendKeyValue(b, "msg", entry.Message)
+			if f.MultiLine {
+				b.WriteString(entry.Message)
+			} else {
+				f.appendKeyValue(b, "msg", entry.Message)
+			}
 		case strings.HasPrefix(field, "`"):
 			f.appendKeyValue(b, field, field)
 		default:
@@ -80,6 +86,7 @@ func (f *PositionalFormatter) appendKeyValue(b *bytes.Buffer, key string, value 
 		if strings.HasPrefix(key, "`") {
 			b.WriteString(key[1:len(key)])
 		} else {
+
 			writeQuotedValue(value, b)
 		}
 
