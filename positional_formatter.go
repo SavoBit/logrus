@@ -22,6 +22,7 @@ type PositionalFormatter struct {
 func (f *PositionalFormatter) Format(entry *Entry) ([]byte, error) {
 	var keys []string = make([]string, 0, len(entry.Data))
 	for k := range entry.Data {
+
 		keys = append(keys, k)
 	}
 
@@ -45,6 +46,10 @@ func (f *PositionalFormatter) Format(entry *Entry) ([]byte, error) {
 			} else {
 				f.appendKeyValue(b, "msg", entry.Message)
 			}
+		case field == "linenum":
+			b.WriteString(entry.Data["linenum"].(string) + " ")
+		case field == "package":
+			f.appendKeyValue(b, "package", entry.Data["package"])
 		case strings.HasPrefix(field, "`"):
 			f.appendKeyValue(b, field, field)
 		default:
