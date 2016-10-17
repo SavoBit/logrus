@@ -6,14 +6,14 @@ import (
 )
 
 type CustomJSONFormatter struct {
-	Functions      map[string]func()string
-	Fields         []string
+	Functions map[string]func() string
+	Fields    []string
 	// TimestampFormat sets the format used for marshaling timestamps.
 	TimestampFormat string
 }
 
 func (f *CustomJSONFormatter) Format(entry *Entry) ([]byte, error) {
-	data := make(Fields, len(entry.Data)+3)
+	data := make(Fields, len(entry.Data)+3+len(f.Fields))
 	for k, v := range entry.Data {
 		switch v := v.(type) {
 		case error:
@@ -34,7 +34,7 @@ func (f *CustomJSONFormatter) Format(entry *Entry) ([]byte, error) {
 	data["time"] = entry.Time.Format(timestampFormat)
 	data["msg"] = entry.Message
 	data["level"] = entry.Level.String()
-	if (len(f.Fields) > 0){
+	if len(f.Fields) > 0 {
 		for _, key := range f.Fields {
 			switch {
 			case !(key == "time" || key == "msg" || key == "level"):
