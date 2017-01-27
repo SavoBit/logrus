@@ -1,6 +1,7 @@
 package logrus
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 )
@@ -33,9 +34,29 @@ func (f *JSONFormatter) Format(entry *Entry) ([]byte, error) {
 	data["msg"] = entry.Message
 	data["level"] = entry.Level.String()
 
-	serialized, err := json.Marshal(data)
+	serialized, err := jsonMarshal(data)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to marshal fields to JSON, %v", err)
 	}
 	return append(serialized, '\n'), nil
+}
+
+// I don't want to see "\u003cnil\u003e" ever again
+func jsonMarshal(v interface{}) ([]byte, error) {
+	var buf bytes.Buffer
+	enc := json.NewEncoder(&buf)
+	enc.SetEscapeHTML(false) // turn off that annoying setting
+	err := enc.Encode(v)
+	if err != nil {
+		return nil, err
+	}
+
+	// unlike json.Marshal(), json.Encoder.Encode() terminates with a '\n'
+	// which we strip off in order to match json.Marshal.
+	b := buf.Bytes()
+	if len(b) > 0 && b[len(b)-1] == '\n' {
+		b = b[:len(b)-1]
+	}
+
+	return b, nil
 }

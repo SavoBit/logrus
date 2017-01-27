@@ -1,9 +1,6 @@
 package logrus
 
-import (
-	"encoding/json"
-	"fmt"
-)
+import "fmt"
 
 type CustomJSONFormatter struct {
 	Functions map[string]func() string
@@ -46,7 +43,7 @@ func (f *CustomJSONFormatter) Format(entry *Entry) ([]byte, error) {
 		}
 	}
 
-	serialized, err := json.Marshal(data)
+	serialized, err := jsonMarshal(data)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to marshal fields to JSON, %v", err)
 	}
